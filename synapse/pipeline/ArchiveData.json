@@ -1,0 +1,193 @@
+{
+    "name": "ArchiveData",
+    "properties": {
+        "activities": [
+            {
+                "name": "Archive",
+                "type": "ExecuteDataFlow",
+                "dependsOn": [
+                    {
+                        "activity": "Delete source data",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataflow": {
+                        "referenceName": "SplitArchiveData",
+                        "type": "DataFlowReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "'@{pipeline().parameters.containerName}'",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "'@{pipeline().parameters.entityName}'",
+                                "type": "Expression"
+                            },
+                            "DateSplitColumn": {
+                                "value": "'@{pipeline().parameters.DateSplitColumn}'",
+                                "type": "Expression"
+                            },
+                            "ArchiveDate": {
+                                "value": "'@{pipeline().parameters.ArchiveDate}'",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "compute": {
+                        "coreCount": 8,
+                        "computeType": "General"
+                    },
+                    "traceLevel": "Fine"
+                }
+            },
+            {
+                "name": "Copy data to split",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "DelimitedTextSource",
+                        "storeSettings": {
+                            "type": "AzureBlobFSReadSettings",
+                            "recursive": true,
+                            "wildcardFileName": "*",
+                            "enablePartitionDiscovery": false
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextReadSettings"
+                        }
+                    },
+                    "sink": {
+                        "type": "DelimitedTextSink",
+                        "storeSettings": {
+                            "type": "AzureBlobFSWriteSettings"
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextWriteSettings",
+                            "quoteAllText": true,
+                            "fileExtension": ".txt"
+                        }
+                    },
+                    "enableStaging": false,
+                    "translator": {
+                        "type": "TabularTranslator",
+                        "typeConversion": true,
+                        "typeConversionSettings": {
+                            "allowDataTruncation": true,
+                            "treatBooleanAsNumber": false
+                        }
+                    }
+                },
+                "inputs": [
+                    {
+                        "referenceName": "data_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    }
+                ],
+                "outputs": [
+                    {
+                        "referenceName": "data_dataset_split",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Delete source data",
+                "type": "Delete",
+                "dependsOn": [
+                    {
+                        "activity": "Copy data to split",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "dataset": {
+                        "referenceName": "data_dataset",
+                        "type": "DatasetReference",
+                        "parameters": {
+                            "containerName": {
+                                "value": "@pipeline().parameters.containerName",
+                                "type": "Expression"
+                            },
+                            "entityName": {
+                                "value": "@pipeline().parameters.entityName",
+                                "type": "Expression"
+                            }
+                        }
+                    },
+                    "enableLogging": false,
+                    "storeSettings": {
+                        "type": "AzureBlobFSReadSettings",
+                        "recursive": true,
+                        "enablePartitionDiscovery": false
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "containerName": {
+                "type": "string"
+            },
+            "entityName": {
+                "type": "string"
+            },
+            "DateSplitColumn": {
+                "type": "string"
+            },
+            "ArchiveDate": {
+                "type": "string",
+                "defaultValue": "2024-01-01"
+            }
+        },
+        "annotations": []
+    }
+}

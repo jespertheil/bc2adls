@@ -68,7 +68,12 @@ codeunit 82566 "ADLSE CDM Util" // Refer Common Data Model https://docs.microsof
             Entity.Add('entityPath', StrSubstNo(EntityPathTok, EntityName));
 
             DataPartitionPattern.Add('name', EntityName);
-            DataPartitionPattern.Add('rootLocation', Folder + '/' + EntityName);
+            // In the data folder, we add one more folder level for separating data and archived data.
+            if (Folder = 'data') then
+                DataPartitionPattern.Add('rootLocation', Folder + '/' + EntityName + '/data')
+            else
+                DataPartitionPattern.Add('rootLocation', Folder + '/' + EntityName);
+
             case ADLSECdmFormat of
                 "ADLSE CDM Format"::Csv:
                     begin

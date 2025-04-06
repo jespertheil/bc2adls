@@ -1,5 +1,5 @@
 {
-    "name": "data_dataset_parquet",
+    "name": "data_dataset_split",
     "properties": {
         "linkedServiceName": {
             "referenceName": "AzureDataLakeStorage",
@@ -14,12 +14,12 @@
             }
         },
         "annotations": [],
-        "type": "Parquet",
+        "type": "DelimitedText",
         "typeProperties": {
             "location": {
                 "type": "AzureBlobFSLocation",
                 "folderPath": {
-                    "value": "@concat('data/', dataset().entityName,'/data')",
+                    "value": "@concat('data/', dataset().entityName,'/split')",
                     "type": "Expression"
                 },
                 "fileSystem": {
@@ -27,7 +27,10 @@
                     "type": "Expression"
                 }
             },
-            "compressionCodec": "snappy"
+            "columnDelimiter": ",",
+            "escapeChar": "\\",
+            "firstRowAsHeader": true,
+            "quoteChar": "\""
         },
         "schema": []
     },
